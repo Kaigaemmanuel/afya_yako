@@ -1,4 +1,9 @@
 import React, { useState } from 'react';
+import { enUS } from 'date-fns/locale';
+import { ScheduleMeeting } from 'react-schedule-meeting';
+
+
+
 
 const MyForm = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +15,20 @@ const MyForm = () => {
     surgery_type: '',
     surgery_room: ''
   });
+
+  const handleTimeslotClicked = (startTimeEventEmit) => {
+    startTimeEventEmit.resetDate();
+    startTimeEventEmit.resetSelectedTimeState();
+    alert(`Time selected: ${format(startTimeEventEmit.startTime, 'cccc, LLLL do h:mm a')}`);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    // Reset error message when user selects an option
+    setFormErrors({ ...formErrors, [name]: '' });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -32,14 +51,6 @@ const MyForm = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-
-    // Reset error message when user selects an option
-    setFormErrors({ ...formErrors, [name]: '' });
-  };
-
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
@@ -57,7 +68,7 @@ const MyForm = () => {
                     value={formData.surgery_type}
                     onChange={handleChange}
                   >
-                    <option value="" disabled>Select surgery type</option>
+                    <option value="" disabled>Select surgery type.....</option>
                     <option value="brain">Brain surgery</option>
                     <option value="leg">Leg surgery</option>
                   </select>
@@ -74,13 +85,30 @@ const MyForm = () => {
                     value={formData.surgery_room}
                     onChange={handleChange}
                   >
-                    <option value="" disabled>Select surgery room</option>
+                    <option value="" disabled>Select surgery room......</option>
                     <option value="buildingC">Building C, room 01</option>
                     <option value="buildingA">Building A, room 02</option>
                   </select>
                   {formErrors.surgery_room && (
                     <div className="invalid-feedback">{formErrors.surgery_room}</div>
                   )}
+                </div>
+                <div className="form-group">
+                  <label htmlFor="time">Surgery Time</label>
+                  <ScheduleMeeting
+                    onStartTimeSelect={handleTimeslotClicked}
+                    lang_cancelButtonText="Cancel"
+                    lang_confirmButtonText="Confirm"
+                    lang_emptyListText="No times available"
+                    lang_goToNextAvailableDayText="Next Available"
+                    lang_noFutureTimesText="No future times available"
+                    lang_selectedButtonText="Selected:"
+                    format_nextFutureStartTimeAvailableFormatString="cccc, LLLL do"
+                    format_selectedDateDayTitleFormatString="cccc, LLLL do"
+                    format_selectedDateMonthTitleFormatString="LLLL yyyy"
+                    format_startTimeFormatString="h:mm a"
+                    locale={enUS}
+                  />
                 </div>
                 <div className="text-center">
                   <button type="submit" className="btn btn-primary">Create appointment</button>

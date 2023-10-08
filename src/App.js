@@ -5,6 +5,7 @@ import Home from './components/Home';
 import CreateAppointment from './components/CreateAppointment';
 
 
+
 function App() {
   return (
     <Router>
@@ -12,6 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/create_appointment" element={<CreateAppointment />} />
+      
           
         </Routes>
       </div>
