@@ -41,19 +41,18 @@ export const OverviewLatestProcedures = (props) => {
       <CardHeader
         title="Latest Procedures"
         action={
-          <IconButton aria-label="add procedure">
-            <Button
-              startIcon={(
-                <SvgIcon fontSize="small">
-                  <PlusIcon />
-                </SvgIcon>
-              )}
-              variant="contained"
-              onClick={openNewProcedurePage}
-            >
-              New Procedure
-            </Button>
-          </IconButton>
+          <Button
+            startIcon={(
+              <SvgIcon fontSize="small">
+                <PlusIcon />
+              </SvgIcon>
+            )}
+            variant="contained"
+            aria-label="add procedure"
+            onClick={openNewProcedurePage}
+          >
+            New Procedure
+          </Button>
         }
       />
       <Scrollbar sx={{ flexGrow: 1 }}>

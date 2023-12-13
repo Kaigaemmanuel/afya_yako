@@ -12,7 +12,8 @@ import {
 } from "@mui/material";
 import { MobileDateTimePicker, MobileDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-
+import {COUNTRY_LIST, COUNTY_CODE_TO_CITY_LIST_MAP} from 'src/utils/constants';
+import { toast } from 'react-hot-toast';
 
 export const ProcedureForm = () => {
   const [procedureTypes, setProcedureTypes] = useState([
@@ -26,16 +27,28 @@ export const ProcedureForm = () => {
     procedureDetails: "",
     procedureDateAndTime: new Date(),
     patient: {
-      afyaBoraId: "",
       firstName: "Anika",
       lastName: "Visser",
       dob: new Date(),
       phone: "",
       email: "demo@devias.io",
       city: "",
-      country: "USA",
+      country: "TZ",
     },
   });
+
+  const onDateChange = (name) => (newDate) => {
+    // Construct the event value similar to the way you do in handleChange
+    const event = {
+      target: {
+        name,
+        value: newDate,
+      },
+    };
+  
+    // Call the existing handleChange function with the constructed event
+    handleChange(event);
+  };
 
   const handleChange = useCallback((event) => {
     const { name, value } = event.target;
@@ -59,7 +72,9 @@ export const ProcedureForm = () => {
     }
   }, []);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback((event) => {
+    event.preventDefault();
+
     // Add your validation logic here
     if (
       values.procedureType &&
@@ -73,8 +88,8 @@ export const ProcedureForm = () => {
       const newProcedure = {
         procedureType: values.procedureType,
         procedureDetails: values.procedureDetails,
+        procedureDateAndTime: values.procedureDateAndTime,
         patient: {
-          afyaBoraId: values.patient.afyaBoraId,
           firstName: values.patient.firstName,
           lastName: values.patient.lastName,
           dob: values.patient.dob,
@@ -85,15 +100,14 @@ export const ProcedureForm = () => {
         },
       };
 
-      console.log("New Procedure:", newProcedure);
+      toast.success('Success! New Procedure Created.');
     } else {
-      // Validation failed, handle accordingly (show error message, etc.)
-      console.error("Validation failed");
+      toast.error('There is a field error! Please check.');
     }
   }, [values]);
 
   return (
-    <form autoComplete="off" noValidate onSubmit={handleSubmit}>
+    <form autoComplete="off" onSubmit={handleSubmit}>
       <Card>
         <CardHeader subheader="Enter details about your new procedure" title="Procedure" />
         <CardContent sx={{ pt: 0 }}>
@@ -124,7 +138,8 @@ export const ProcedureForm = () => {
                   <MobileDateTimePicker
                     label="Select Date and Time"
                     timezone="Africa/Nairobi"
-                    onChange={handleChange}
+                    onChange={onDateChange('procedureDateAndTime')}
+                    name="procedureDateAndTime"
                     value={values.procedureDateAndTime}
                     renderInput={(props) => <TextField {...props} fullWidth />}
                   />
@@ -151,22 +166,12 @@ export const ProcedureForm = () => {
         <CardContent sx={{ pt: 0 }}>
           <Box sx={{ m: -1.5 }}>
             <Grid container spacing={3}>
-              <Grid xs={12} md={12}>
-                <TextField
-                  fullWidth
-                  helperText="Enter Afya Bora ID to automatically get information. If patient is new then we will generate one for them right here."
-                  label="Afya Bora ID"
-                  name="afyaBoraId"
-                  onChange={handleChange}
-                  value={values.patient.afyaBoraId}
-                />
-              </Grid>
               <Grid xs={12} md={6}>
                 <TextField
                   fullWidth
                   helperText="Please specify the first name"
-                  label="First name"
-                  name="firstName"
+                  label="First name or Afya Bora ID"
+                  name="patient.firstName"
                   onChange={handleChange}
                   required
                   value={values.patient.firstName}
@@ -176,7 +181,7 @@ export const ProcedureForm = () => {
                 <TextField
                   fullWidth
                   label="Last name"
-                  name="lastName"
+                  name="patient.lastName"
                   onChange={handleChange}
                   required
                   value={values.patient.lastName}
@@ -188,7 +193,8 @@ export const ProcedureForm = () => {
                     label="Date of birth"
                     timezone="Africa/Nairobi"
                     value={values.patient.dob}
-                    onChange={handleChange}
+                    onChange={onDateChange('patient.dob')}
+                    name="patient.dob"
                     renderInput={(props) => <TextField {...props} fullWidth />}
                   />
                 </LocalizationProvider>
@@ -197,7 +203,7 @@ export const ProcedureForm = () => {
                 <TextField
                   fullWidth
                   label="Phone Number"
-                  name="phone"
+                  name="patient.phone"
                   onChange={handleChange}
                   type="number"
                   required
@@ -209,37 +215,58 @@ export const ProcedureForm = () => {
                 <TextField
                   fullWidth
                   label="Email Address"
-                  name="email"
+                  name="patient.email"
                   onChange={handleChange}
                   value={values.patient.email}
                 />
               </Grid>
-              <Grid xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="City"
-                  name="city"
-                  onChange={handleChange}
-                  required
-                  value={values.patient.country}
-                />
-              </Grid>
-              <Grid xs={12} md={6}>
+              <Grid xs={12} whja md={6}>
                 <TextField
                   fullWidth
                   label="Country"
-                  name="country"
+                  name="patient.country"
                   onChange={handleChange}
                   required
+                  select
+                  SelectProps={{ native: true }}
                   value={values.patient.country}
-                />
+                >
+                  <option value="" hidden>
+                  </option>
+                  {COUNTRY_LIST.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.name}
+                    </option>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid xs={12} whja md={6}>
+                <TextField
+                  fullWidth
+                  label="City"
+                  name="patient.city"
+                  onChange={handleChange}
+                  required
+                  select
+                  SelectProps={{ native: true }}
+                  value={values.patient.city}
+                  disabled={!values.patient.country}
+                >
+                  <option value="" hidden>
+                  </option>
+                  {values.patient.country && COUNTY_CODE_TO_CITY_LIST_MAP[values.patient.country].map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </TextField>
               </Grid>
             </Grid>
           </Box>
         </CardContent>
         <Divider />
         <CardActions sx={{ justifyContent: "flex-end" }}>
-          <Button variant="contained">Create</Button>
+          <Button type="submit" variant="contained">Create</Button>
         </CardActions>
       </Card>
     </form>

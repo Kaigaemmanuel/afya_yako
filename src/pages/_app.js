@@ -9,6 +9,7 @@ import { useNProgress } from 'src/hooks/use-nprogress';
 import { createTheme } from 'src/theme';
 import { createEmotionCache } from 'src/utils/create-emotion-cache';
 import 'simplebar-react/dist/simplebar.min.css';
+import { Toaster } from "react-hot-toast";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -38,6 +39,7 @@ const App = (props) => {
         <AuthProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline />
+            <Toaster position="bottom-center" />
             <AuthConsumer>
               {
                 (auth) => auth.isLoading
