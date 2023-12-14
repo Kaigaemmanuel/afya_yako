@@ -1,4 +1,4 @@
-## [Afya Bora Web App FE]
+## Afya Bora Web App FE
 
 Built by Emmanuel Kaiga & Mohamed Mnete.
 

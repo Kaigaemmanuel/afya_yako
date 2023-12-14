@@ -11,25 +11,13 @@ import {
   CardHeader,
   Divider,
   SvgIcon,
-  Table,
-  IconButton,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow
 } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
-import { SeverityPill } from 'src/components/severity-pill';
 import { useRouter } from 'next/router';
-
-const statusMap = {
-  pending: 'warning',
-  delivered: 'success',
-  refunded: 'error'
-};
+import {ProceduresTable} from 'src/sections/tables/procedures-table';
 
 export const OverviewLatestProcedures = (props) => {
-  const { orders = [], sx } = props;
+  const { sx } = props;
   const router = useRouter();
 
   const openNewProcedurePage = () => {
@@ -56,53 +44,7 @@ export const OverviewLatestProcedures = (props) => {
         }
       />
       <Scrollbar sx={{ flexGrow: 1 }}>
-        <Box sx={{ minWidth: 800 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  Procudure Id
-                </TableCell>
-                <TableCell>
-                  Personel
-                </TableCell>
-                <TableCell sortDirection="desc">
-                  Date
-                </TableCell>
-                <TableCell>
-                  Status
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {orders.map((order) => {
-                const createdAt = format(order.createdAt, 'dd/MM/yyyy');
-
-                return (
-                  <TableRow
-                    hover
-                    key={order.id}
-                  >
-                    <TableCell>
-                      {order.ref}
-                    </TableCell>
-                    <TableCell>
-                      {order.customer.name}
-                    </TableCell>
-                    <TableCell>
-                      {createdAt}
-                    </TableCell>
-                    <TableCell>
-                      <SeverityPill color={statusMap[order.status]}>
-                        {order.status}
-                      </SeverityPill>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Box>
+       <ProceduresTable sx={{ minWidth: '100%' }}></ProceduresTable>
       </Scrollbar>
       <Divider />
       <CardActions sx={{ justifyContent: 'flex-end' }}>
@@ -124,6 +66,5 @@ export const OverviewLatestProcedures = (props) => {
 };
 
 OverviewLatestProcedures.prototype = {
-  orders: PropTypes.array,
   sx: PropTypes.object
 };

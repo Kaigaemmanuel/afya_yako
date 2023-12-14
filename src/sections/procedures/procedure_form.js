@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   CardActions,
+  CircularProgress,
   CardContent,
   CardHeader,
   Divider,
@@ -12,10 +13,21 @@ import {
 } from "@mui/material";
 import { MobileDateTimePicker, MobileDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import {COUNTRY_LIST, COUNTY_CODE_TO_CITY_LIST_MAP} from 'src/utils/constants';
-import { toast } from 'react-hot-toast';
+import { COUNTRY_LIST, COUNTY_CODE_TO_CITY_LIST_MAP } from "src/utils/constants";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import procedureService from "src/services/procedureService";
 
 export const ProcedureForm = () => {
+  const router = useRouter();
+  const [isSubmitLoading, setIsSubmitLoading] = useState(false);
+
+  const redirectToNewLocation = () => {
+    setTimeout(() => {
+      router.push("/");
+    }, 1000);
+  };
+
   const [procedureTypes, setProcedureTypes] = useState([
     { value: "brain-surgery", label: "Brain Surgery" },
     { value: "heart-surgery", label: "Heart Surgery" },
@@ -45,22 +57,22 @@ export const ProcedureForm = () => {
         value: newDate,
       },
     };
-  
+
     // Call the existing handleChange function with the constructed event
     handleChange(event);
   };
 
   const handleChange = useCallback((event) => {
     const { name, value } = event.target;
-  
+
     // Check if the field is inside the patient object
-    if (name.startsWith('patient.')) {
+    if (name.startsWith("patient.")) {
       // Update the patient object
       setValues((prevValues) => ({
         ...prevValues,
         patient: {
           ...prevValues.patient,
-          [name.replace('patient.', '')]: value,
+          [name.replace("patient.", "")]: value,
         },
       }));
     } else {
@@ -72,39 +84,52 @@ export const ProcedureForm = () => {
     }
   }, []);
 
-  const handleSubmit = useCallback((event) => {
-    event.preventDefault();
+  const handleSubmit = useCallback(
+    async (event) => {
+      setIsSubmitLoading(true);
+      event.preventDefault();
 
-    // Add your validation logic here
-    if (
-      values.procedureType &&
-      values.procedureDetails &&
-      values.patient.firstName &&
-      values.patient.lastName &&
-      values.patient.phone &&
-      values.patient.email
-    ) {
-      // Validation passed, you can create a new Procedure interface or perform further actions
-      const newProcedure = {
-        procedureType: values.procedureType,
-        procedureDetails: values.procedureDetails,
-        procedureDateAndTime: values.procedureDateAndTime,
-        patient: {
-          firstName: values.patient.firstName,
-          lastName: values.patient.lastName,
-          dob: values.patient.dob,
-          phone: values.patient.phone,
-          email: values.patient.email,
-          city: values.patient.city,
-          country: values.patient.country,
-        },
-      };
+      // Add your validation logic here
+      if (
+        values.procedureType &&
+        values.procedureDetails &&
+        values.patient.firstName &&
+        values.patient.lastName &&
+        values.patient.phone &&
+        values.patient.email
+      ) {
+        // Validation passed, you can create a new Procedure interface or perform further actions
+        const newProcedure = {
+          procedureType: values.procedureType,
+          procedureDetails: values.procedureDetails,
+          procedureDateAndTime: values.procedureDateAndTime,
+          patient: {
+            firstName: values.patient.firstName,
+            lastName: values.patient.lastName,
+            dob: values.patient.dob,
+            phone: values.patient.phone,
+            email: values.patient.email,
+            city: values.patient.city,
+            country: values.patient.country,
+          },
+        };
 
-      toast.success('Success! New Procedure Created.');
-    } else {
-      toast.error('There is a field error! Please check.');
-    }
-  }, [values]);
+        try {
+          await procedureService.createProcedure(newProcedure);
+          toast.success("Success! New Procedure Created.");
+          setIsSubmitLoading(false);
+          redirectToNewLocation();
+        } catch (error) {
+          // If there's an error, show an error toast
+          toast.error(`Error: ${error.message}`);
+        }
+      } else {
+        toast.error("There is a field error! Please check.");
+      }
+      setIsSubmitLoading(false);
+    },
+    [values]
+  );
 
   return (
     <form autoComplete="off" onSubmit={handleSubmit}>
@@ -124,8 +149,7 @@ export const ProcedureForm = () => {
                   SelectProps={{ native: true }}
                   value={values.procedureType}
                 >
-                  <option value="" hidden>
-                  </option>
+                  <option value="" hidden></option>
                   {procedureTypes.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -138,7 +162,7 @@ export const ProcedureForm = () => {
                   <MobileDateTimePicker
                     label="Select Date and Time"
                     timezone="Africa/Nairobi"
-                    onChange={onDateChange('procedureDateAndTime')}
+                    onChange={onDateChange("procedureDateAndTime")}
                     name="procedureDateAndTime"
                     value={values.procedureDateAndTime}
                     renderInput={(props) => <TextField {...props} fullWidth />}
@@ -193,7 +217,7 @@ export const ProcedureForm = () => {
                     label="Date of birth"
                     timezone="Africa/Nairobi"
                     value={values.patient.dob}
-                    onChange={onDateChange('patient.dob')}
+                    onChange={onDateChange("patient.dob")}
                     name="patient.dob"
                     renderInput={(props) => <TextField {...props} fullWidth />}
                   />
@@ -231,8 +255,7 @@ export const ProcedureForm = () => {
                   SelectProps={{ native: true }}
                   value={values.patient.country}
                 >
-                  <option value="" hidden>
-                  </option>
+                  <option value="" hidden></option>
                   {COUNTRY_LIST.map((country) => (
                     <option key={country.code} value={country.code}>
                       {country.name}
@@ -252,13 +275,13 @@ export const ProcedureForm = () => {
                   value={values.patient.city}
                   disabled={!values.patient.country}
                 >
-                  <option value="" hidden>
-                  </option>
-                  {values.patient.country && COUNTY_CODE_TO_CITY_LIST_MAP[values.patient.country].map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
+                  <option value="" hidden></option>
+                  {values.patient.country &&
+                    COUNTY_CODE_TO_CITY_LIST_MAP[values.patient.country].map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
                 </TextField>
               </Grid>
             </Grid>
@@ -266,7 +289,18 @@ export const ProcedureForm = () => {
         </CardContent>
         <Divider />
         <CardActions sx={{ justifyContent: "flex-end" }}>
-          <Button type="submit" variant="contained">Create</Button>
+          {isSubmitLoading ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : (
+            <Button
+              type="submit"
+              variant="contained"
+              onClick={handleSubmit}
+              disabled={isSubmitLoading}
+            >
+              Create
+            </Button>
+          )}
         </CardActions>
       </Card>
     </form>
